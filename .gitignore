@@ -1,0 +1,14 @@
+# Compiled python files
+*.py[oc]
+
+# Compiled dirs
+__pycache__/
+
+# VSCode workspace identity file
+*.code-workspace
+
+# Virtual env
+.venv/
+
+# Pytest cache
+.pytest_cache
