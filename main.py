@@ -1,7 +1,7 @@
 from collections import deque
 
 import pyqtgraph as pg
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QMainWindow, QTabWidget, QToolBar
 
 
 class RealTimeCurve:
@@ -23,14 +23,14 @@ class RealTimeCurve:
 class RealTimePlotWidget(pg.PlotWidget):
     def __init__(
         self,
-        x_min,
-        x_max,
-        y_min,
-        y_max,
-        title="no name",
-        x_label="no name",
-        y_label="no name",
-        curve_name="no name",
+        x_min: int,
+        x_max: int,
+        y_min: int,
+        y_max: int,
+        x_label: str,
+        y_label: str,
+        curve_name: str,
+        title: str = "",
     ):
         super().__init__()
         self.x_min, self.x_max = x_min, x_max
@@ -55,10 +55,38 @@ class RealTimePlotWidget(pg.PlotWidget):
         self.curve = RealTimeCurve(self, self.x_max - self.x_min + 1)
 
 
+class MainWindowUI:
+    def setup_ui(self, win: QMainWindow) -> None:
+        self.toolbar = QToolBar("main", parent=win)
+        self.tab_graph = QTabWidget()
+        self.graph_voltage = RealTimePlotWidget(
+            0, 30, 0, 5, "Time[s]", "Voltage[V]", "voltage", "Voltage"
+        )
+        self.graph_resistance = RealTimePlotWidget(
+            0, 30, 0, 100, "Time[s]", "Resistance[kΩ]", "Resistance", "Resistance"
+        )
+
+        # setup_widget
+        self.tab_graph.addTab(self.graph_voltage, "Voltage")  # type:ignore
+        self.tab_graph.addTab(self.graph_resistance, "Resistance")  # type:ignore
+
+        # setup_layout
+        win.setCentralWidget(self.tab_graph)
+
+
+class MainWindow(QMainWindow):
+    def __init__(self) -> None:
+        super().__init__()
+        self.ui = MainWindowUI()
+        self.ui.setup_ui(self)
+
+
 def main():
     import sys
 
     app = QApplication(sys.argv)
+    mainwindow = MainWindow()
+    mainwindow.show()
     sys.exit(app.exec_())
 
 
