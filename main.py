@@ -1,6 +1,7 @@
 from collections import deque
 
 import pyqtgraph as pg
+from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QApplication, QMainWindow, QTabWidget, QToolBar
 
 
@@ -78,7 +79,19 @@ class MainWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
         self.ui = MainWindowUI()
+
+        # action
+        self.action_run = QAction(parent=self, text="Run")
+        self.action_stop = QAction(parent=self, text="Stop")
+
+        # setup ui
         self.ui.setup_ui(self)
+
+        # setup toolbar
+        self.addToolBar(self.ui.toolbar)
+        self.ui.toolbar.addAction(self.action_run)  # type:ignore
+        self.ui.toolbar.addSeparator()
+        self.ui.toolbar.addAction(self.action_stop)  # type:ignore
 
 
 def main():
