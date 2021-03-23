@@ -4,7 +4,14 @@ from typing import Union
 import pyqtgraph as pg
 import serial
 from PySide6.QtGui import QAction
-from PySide6.QtWidgets import QApplication, QComboBox, QMainWindow, QTabWidget, QToolBar
+from PySide6.QtWidgets import (
+    QApplication,
+    QComboBox,
+    QMainWindow,
+    QMessageBox,
+    QTabWidget,
+    QToolBar,
+)
 from serial.tools import list_ports
 from serial.tools.list_ports_common import ListPortInfo
 
@@ -158,7 +165,7 @@ class MainWindow(QMainWindow):
                     voltage = float(analog_value) * 5 / 1024
                     self.ui.graph_voltage.curve.append_data(time, voltage)
         except Exception as e:
-            print(e)
+            QMessageBox.critical(self, "ERROR", str(e))
             self.action_run.setEnabled(False)
             self.action_stop.setEnabled(False)
 
