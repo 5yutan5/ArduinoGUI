@@ -1,8 +1,11 @@
 from collections import deque
+from typing import Union
 
 import pyqtgraph as pg
 from PySide6.QtGui import QAction
-from PySide6.QtWidgets import QApplication, QMainWindow, QTabWidget, QToolBar
+from PySide6.QtWidgets import QApplication, QComboBox, QMainWindow, QTabWidget, QToolBar
+from serial.tools import list_ports
+from serial.tools.list_ports_common import ListPortInfo
 
 
 class RealTimeCurve:
@@ -32,7 +35,7 @@ class RealTimePlotWidget(pg.PlotWidget):
         y_label: str,
         curve_name: str,
         title: str = "",
-    ):
+    ) -> None:
         super().__init__()
         self.x_min, self.x_max = x_min, x_max
         self.y_min, self.y_max = y_min, y_max
@@ -50,15 +53,48 @@ class RealTimePlotWidget(pg.PlotWidget):
         self.plotItem.setMouseEnabled(False, False)
         self.enableMouse(False)
 
-    def clear_curve(self):
+    def clear_curve(self) -> None:
         self.plotItem.clear()
         self.setXRange(self.x_min, self.x_max)
         self.curve = RealTimeCurve(self, self.x_max - self.x_min + 1)
 
 
+class PortCombobox(QComboBox):
+    def __init__(self, filter: str = None) -> None:
+        super().__init__()
+        self._port_infos = []
+        self._default_text = "Select Port"
+        self.filter = "" if filter is None else filter
+        self.addItem(self._default_text)
+
+    def get_current_port_info(self) -> Union[ListPortInfo, None]:
+        return (
+            None
+            if len(self._port_infos) == 0
+            else self._port_infos[self.currentIndex()]
+        )
+
+    def showPopup(self) -> None:
+        self._port_infos.clear()
+        self.clear()
+        self._port_infos = [
+            port
+            for port in list_ports.comports()
+            if self.filter in str(port.description)
+        ]
+        if len(self._port_infos) == 0:
+            self.addItem(self._default_text)
+        else:
+            self.addItems([str(port.description) for port in self._port_infos])
+        width = self.view().sizeHintForColumn(0)
+        self.view().setMinimumWidth(width)
+        super().showPopup()
+
+
 class MainWindowUI:
     def setup_ui(self, win: QMainWindow) -> None:
         self.toolbar = QToolBar("main", parent=win)
+        self.port_combobox = PortCombobox("Arduino")
         self.tab_graph = QTabWidget()
         self.graph_voltage = RealTimePlotWidget(
             0, 30, 0, 5, "Time[s]", "Voltage[V]", "voltage", "Voltage"
@@ -92,6 +128,8 @@ class MainWindow(QMainWindow):
         self.ui.toolbar.addAction(self.action_run)  # type:ignore
         self.ui.toolbar.addSeparator()
         self.ui.toolbar.addAction(self.action_stop)  # type:ignore
+        self.ui.toolbar.addSeparator()
+        self.ui.toolbar.addWidget(self.ui.port_combobox)
 
 
 def main():
