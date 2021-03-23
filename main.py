@@ -2,8 +2,10 @@ from collections import deque
 from typing import Union
 
 import pyqtgraph as pg
+import serial
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QApplication, QComboBox, QMainWindow, QTabWidget, QToolBar
+from serial.serialutil import SerialException
 from serial.tools import list_ports
 from serial.tools.list_ports_common import ListPortInfo
 
@@ -130,6 +132,23 @@ class MainWindow(QMainWindow):
         self.ui.toolbar.addAction(self.action_stop)  # type:ignore
         self.ui.toolbar.addSeparator()
         self.ui.toolbar.addWidget(self.ui.port_combobox)
+
+    def start_plot(self):
+        self.action_run.setEnabled(False)
+        port = self.ui.port_combobox.get_current_port_info().device
+        with serial.Serial(port, 9600, parity=serial.PARITY_ODD) as ser:
+            ser.close()
+            ser.parity = serial.PARITY_NONE
+            ser.open()
+            time = 0
+            try:
+                while self.action_stop.isEnabled():
+                    time = time + 0.1
+                    analog_value = ser.readline().decode().rstrip()
+                    voltage = int(analog_value) * 5 / 1024
+                    self.ui.graph_voltage.curve.append_data(voltage, time)
+            except (SerialException, ValueError) as e:
+                print(e.with_traceback)
 
 
 def main():
