@@ -12,8 +12,10 @@ from serial.tools.list_ports_common import ListPortInfo
 
 class RealTimeCurve:
     def __init__(self, plot_widget: pg.PlotWidget, max_len: int) -> None:
+        self.plot_widget = plot_widget
         self.plot_data_item = plot_widget.plot()
         self.x_data, self.y_data = deque(maxlen=max_len), deque(maxlen=max_len)
+        self.x_range = max_len
 
     def set_data(self, x_data: list[float], y_data: list[float]) -> None:
         self.x_data = deque(x_data)
@@ -24,6 +26,9 @@ class RealTimeCurve:
         self.x_data.append(x_data)
         self.y_data.append(y_data)
         self.plot_data_item.setData(self.x_data, self.y_data)
+        if len(self.x_data) == self.x_range:
+            self.plot_widget.setXRange(self.x_data[0], self.x_data[-1])
+        QApplication.processEvents()
 
 
 class RealTimePlotWidget(pg.PlotWidget):
@@ -42,7 +47,7 @@ class RealTimePlotWidget(pg.PlotWidget):
         self.x_min, self.x_max = x_min, x_max
         self.y_min, self.y_max = y_min, y_max
         self.curve_name = curve_name
-        self.curve = RealTimeCurve(self, x_max - x_min + 1)
+        self.curve = RealTimeCurve(self, (x_max - x_min + 1) * 10)
 
         # setup
         self.setXRange(x_min, x_max)
@@ -121,6 +126,8 @@ class MainWindow(QMainWindow):
         # action
         self.action_run = QAction(parent=self, text="Run")
         self.action_stop = QAction(parent=self, text="Stop")
+        self.action_run.triggered.connect(self.start_plot)  # type:ignore
+        self.action_stop.triggered.connect(self.stop_plot)  # type:ignore
 
         # setup ui
         self.ui.setup_ui(self)
@@ -137,6 +144,7 @@ class MainWindow(QMainWindow):
         self.action_run.setEnabled(False)
         self.action_stop.setEnabled(True)
         port = self.ui.port_combobox.get_current_port_info().device
+        print(port)
         with serial.Serial(port, 9600, parity=serial.PARITY_ODD) as ser:
             ser.close()
             ser.parity = serial.PARITY_NONE
@@ -146,8 +154,8 @@ class MainWindow(QMainWindow):
                 while self.action_stop.isEnabled():
                     time = time + 0.1
                     analog_value = ser.readline().decode().rstrip()
-                    voltage = int(analog_value) * 5 / 1024
-                    self.ui.graph_voltage.curve.append_data(voltage, time)
+                    voltage = float(analog_value) * 5 / 1024
+                    self.ui.graph_voltage.curve.append_data(time, voltage)
             except (SerialException, ValueError) as e:
                 print(e.with_traceback)
 
@@ -159,6 +167,7 @@ class MainWindow(QMainWindow):
 def main():
     import sys
 
+    pg.setConfigOptions(antialias=True)
     app = QApplication(sys.argv)
     mainwindow = MainWindow()
     mainwindow.show()
