@@ -16,7 +16,7 @@ setup(
     description=DESCRIPTION,
     longdescription=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
-    url="https://github.com/5yutan5/tensile-LCR-tester",
+    url="https://github.com/5yutan5/ArduinoPlotter",
     include_package_data=True,
     packages=setuptools.find_packages(),
     classifiers=[
