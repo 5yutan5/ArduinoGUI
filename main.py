@@ -15,12 +15,12 @@ class RealTimeCurve:
         self.plot_data_item = plot_widget.plot()
         self.x_data, self.y_data = deque(maxlen=max_len), deque(maxlen=max_len)
 
-    def set_data(self, x_data: list, y_data: list) -> None:
+    def set_data(self, x_data: list[float], y_data: list[float]) -> None:
         self.x_data = deque(x_data)
         self.y_data = deque(y_data)
         self.plot_data_item.setData(x_data, y_data)
 
-    def append_data(self, x_data: int, y_data: int) -> None:
+    def append_data(self, x_data: float, y_data: float) -> None:
         self.x_data.append(x_data)
         self.y_data.append(y_data)
         self.plot_data_item.setData(self.x_data, self.y_data)
