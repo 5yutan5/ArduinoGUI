@@ -135,6 +135,7 @@ class MainWindow(QMainWindow):
 
     def start_plot(self):
         self.action_run.setEnabled(False)
+        self.action_stop.setEnabled(True)
         port = self.ui.port_combobox.get_current_port_info().device
         with serial.Serial(port, 9600, parity=serial.PARITY_ODD) as ser:
             ser.close()
@@ -149,6 +150,10 @@ class MainWindow(QMainWindow):
                     self.ui.graph_voltage.curve.append_data(voltage, time)
             except (SerialException, ValueError) as e:
                 print(e.with_traceback)
+
+    def stop_plot(self):
+        self.action_run.setEnabled(True)
+        self.action_stop.setEnabled(False)
 
 
 def main():
