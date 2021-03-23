@@ -31,3 +31,13 @@ pip install git+https://github.com/5yutan5/ArduinoPlotter
 ```
 
 The installation is now complete.
+
+# Get started
+
+After all the installation is complete, the following command enter the terminal.
+
+```
+ArduinoPlotter
+```
+
+Maybe the application of arduino plotter will launch.
