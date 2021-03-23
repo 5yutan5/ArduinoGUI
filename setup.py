@@ -26,6 +26,6 @@ setup(
     ],
     install_requires=REQUIREMENTS,
     dependency_links=["git@git+https://github.com/pyqtgraph/pyqtgraph"],
-    entry_points={"gui_scripts": ["ArduinoPlotter = main:main"]},
+    entry_points={"gui_scripts": ["ArduinoPlotter = ArduinoPlotter.main:main"]},
     python_requires=">=3.9",
 )
