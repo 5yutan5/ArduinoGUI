@@ -5,7 +5,6 @@ import pyqtgraph as pg
 import serial
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QApplication, QComboBox, QMainWindow, QTabWidget, QToolBar
-from serial.serialutil import SerialException
 from serial.tools import list_ports
 from serial.tools.list_ports_common import ListPortInfo
 
@@ -128,9 +127,12 @@ class MainWindow(QMainWindow):
         self.action_stop = QAction(parent=self, text="Stop")
         self.action_run.triggered.connect(self.start_plot)  # type:ignore
         self.action_stop.triggered.connect(self.stop_plot)  # type:ignore
+        self.action_run.setEnabled(False)
+        self.action_stop.setEnabled(False)
 
         # setup ui
         self.ui.setup_ui(self)
+        self.ui.port_combobox.currentTextChanged.connect(self.change_port_combobox)
 
         # setup toolbar
         self.addToolBar(self.ui.toolbar)
@@ -143,25 +145,30 @@ class MainWindow(QMainWindow):
     def start_plot(self):
         self.action_run.setEnabled(False)
         self.action_stop.setEnabled(True)
-        port = self.ui.port_combobox.get_current_port_info().device
-        print(port)
-        with serial.Serial(port, 9600, parity=serial.PARITY_ODD) as ser:
-            ser.close()
-            ser.parity = serial.PARITY_NONE
-            ser.open()
-            time = 0
-            try:
+        try:
+            port = self.ui.port_combobox.get_current_port_info().device
+            with serial.Serial(port, 9600, parity=serial.PARITY_ODD) as ser:
+                ser.close()
+                ser.parity = serial.PARITY_NONE
+                ser.open()
+                time = 0
                 while self.action_stop.isEnabled():
                     time = time + 0.1
                     analog_value = ser.readline().decode().rstrip()
                     voltage = float(analog_value) * 5 / 1024
                     self.ui.graph_voltage.curve.append_data(time, voltage)
-            except (SerialException, ValueError) as e:
-                print(e.with_traceback)
+        except Exception as e:
+            print(e)
+            self.action_run.setEnabled(False)
+            self.action_stop.setEnabled(False)
 
     def stop_plot(self):
         self.action_run.setEnabled(True)
         self.action_stop.setEnabled(False)
+
+    def change_port_combobox(self) -> None:
+        if self.ui.port_combobox.get_current_port_info() is not None:
+            self.action_run.setEnabled(True)
 
 
 def main():
