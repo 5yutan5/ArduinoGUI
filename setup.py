@@ -9,7 +9,7 @@ with open("requirements.txt", "r") as f:
 DESCRIPTION = "This is a plotter of Arduino."
 
 setup(
-    name="TLTester",
+    name="ArduinoPlotter",
     version="0.1.0",
     author="5yutan5",
     author_email="4yutan4@gmail.com",
